@@ -1,21 +1,33 @@
-//The authorizeRole middleware ensures the user has the correct role before allowing access to the route.
-function authorizeRole(requiredRole) {
-  return (req, res, next) => {
-    const user = req.user; // Assume authentication middleware adds `user` to `req`
+const User = require("../models/User"); // Import the User model
 
-    if (!user) {
+// Middleware to authorize roles based on user ID
+function authorizeRole(requiredRole) {
+  return async (req, res, next) => {
+    const userId = req.user?.id; // Assuming req.user contains decoded JWT with user ID
+
+    if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (user.role !== requiredRole) {
-      return res.status(403).json({ message: "Forbidden: Insufficient role" });
-    }
+    try {
+      // Fetch user from the database
+      const user = await User.findById(userId);
 
-    next();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if the user's role matches the required role
+      if (user.role !== requiredRole) {
+        return res.status(403).json({ message: "Forbidden: Insufficient role" });
+      }
+
+      next(); // User has the required role, proceed
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
   };
 }
 
 module.exports = { authorizeRole };
-
-
-authorizeRole("admin")

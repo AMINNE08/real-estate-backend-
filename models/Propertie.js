@@ -29,6 +29,19 @@ const PropertySchema = new mongoose.Schema(
       required: true,
       min: 0, 
     },
+    category: {
+      type: String,
+      required: true,
+      enum: ["buy", "rent"], 
+    },
+    features: {
+      type: [String], 
+      default: [], 
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
     status: {
       type: String,
       required: true,
