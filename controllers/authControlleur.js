@@ -4,6 +4,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto')
 const  apiInstance = require ('../config/brevoConfig')
 
+
+
+
+
+
 // register user
 exports.registre = async (req, res) => {
     const { userID, username, email, password, role} = req.body;
@@ -72,82 +77,54 @@ exports.login = async (req, res) => {
   };
 
 
+
+
+
+
+
+
+
+
+
 // Forgot Password function
+const crypto = require('crypto');
+const { sendPasswordResetEmail } = require('../config/emailConfig');
+
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  // Validate email
   if (!email) {
-   
     return res.status(400).json({ message: "Email is required" });
   }
-  console.log("Email provided:", email);
 
   try {
-    // Check if the user exists
     const user = await User.findOne({ email });
     if (!user) {
-      console.log("User not found:", email);
       return res.status(400).json({ message: "User does not exist" });
     }
 
-    
-
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    
-
-    // Set token expiration time (optional, e.g., 1 hour from now)
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour in milliseconds
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
+
+    const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}&id=${user._id}`;
     
-
-    // Generate reset URL
-const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}&id=${user._id}`;
-    
-
-    // Prepare the email data
-const emailData = {
-  sender: { name: 'Amine', email: 'saddedineaminetahar@gmail.com' },
-  to: [{ email: user.email }],
-  subject: "Password Reset Request",
-  htmlContent: `
-    <div style="font-family: Arial, sans-serif; color: #333;">
-      <h2 style="color: #e74c3c;">Hello ${user.name},</h2>
-      <p style="line-height: 1.6;">
-        You requested a password reset. Please click the link below to reset your password:
-      </p>
-      <p style="text-align: center; margin: 20px 0;">
-        <a href="${resetUrl}" style="background-color: #e74c3c; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-          Reset Password
-        </a>
-      </p>
-      <p style="color: #666;">
-        If you did not request this, please ignore this email.
-      </p>
-      <p style="margin-top: 30px; font-size: 12px; color: #999;">
-        Best regards, <br/> Amine
-      </p>
-    </div>
-  `
-};
-
-   
-
     try {
-      await apiInstance.sendTransacEmail(emailData);
-      console.log("Password reset email sent to:", user.email);
-      return res.status(200).json({ message: "Password reset email sent" });
+      await sendPasswordResetEmail(user, resetUrl);
+      res.status(200).json({ message: "Password reset email sent" });
     } catch (emailError) {
-      console.error("Error sending email:", emailError.response ? emailError.response.body : emailError);
-      return res.status(500).json({ message: "Failed to send password reset email" });
+      console.error("Error sending email:", emailError);
+      res.status(500).json({ message: "Failed to send password reset email" });
     }
   } catch (error) {
     console.error("Error occurred:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 
 
 
