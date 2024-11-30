@@ -3,24 +3,16 @@ const app = express()
 require("dotenv").config();
 const mongoose = require("mongoose");
 const cors = require("cors");
+const passport = require('passport');
+const session = require('express-session');
 const errorHandler = require('./middlewares/errorHandler');
 const routes= require ('./routes/allroutes.js')
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: 'http://127.0.0.1:3000', credentials: true }));
 
 // Global error handler
 app.use(errorHandler);
 
-app.use("/api/v1", routes);
-
-
-// Handle undefined routes
-app.use((req, res, next) => {
-  res.status(404).json({
-    status: "fail",
-    message: "Route not found!",
-  });
-});
 
 
 mongoose
@@ -35,3 +27,38 @@ app.listen(port, () => {
 });
 
 
+// Middleware setup
+app.use(session({ secret: process.env.SESSION_SECRET , resave: true, saveUninitialized: true }));
+require('./config/passport-config.js');
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Google Authentication Routes
+app.get('/auth/google', passport.authenticate('google', {
+    scope: ['email', 'profile'],
+}));
+
+app.get('/auth/google/redirect', passport.authenticate('google', {
+    failureRedirect: '/login',
+}), (req, res) => {
+    res.redirect('/welcome_page');
+});
+
+// Your other routes
+app.get('/welcome_page', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.send('Welcome to the welcome page!');
+    } else {
+        res.redirect('/login');
+    }
+});
+
+app.use("/api/v1", routes);
+
+// Handle undefined routes
+app.use((req, res, next) => {
+  res.status(404).json({
+    status: "fail",
+    message: "Route not found!",
+  });
+});

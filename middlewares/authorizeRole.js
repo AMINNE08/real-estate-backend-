@@ -1,28 +1,25 @@
-const User = require("../models/User"); // Import the User model
+const User = require("../models/User");
 
-// Middleware to authorize roles based on user ID
-function authorizeRole(requiredRole) {
+function authorizeRole(...allowedRoles) {
   return async (req, res, next) => {
-    const userId = req.user?.id; // Assuming req.user contains decoded JWT with user ID
-
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
     try {
-      // Fetch user from the database
+      const userId = req.user?.id; // User ID from the JWT payload
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const user = await User.findById(userId);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if the user's role matches the required role
-      if (user.role !== requiredRole) {
+      if (!allowedRoles.includes(user.role)) {
         return res.status(403).json({ message: "Forbidden: Insufficient role" });
       }
 
-      next(); // User has the required role, proceed
+      next(); // User has sufficient role, proceed
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Internal server error" });

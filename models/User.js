@@ -19,23 +19,22 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      required: true,
-      enum: ["user", "admin"], 
-      default: "user",
+      enum: ["user", "admin"], // Limit the roles to "user" or "admin"
+      default: "user", // Default role is "user"
     },
     phone: {
       type: String,
       required: true,
       validate: {
         validator: function (v) {
-          return /^(\+213|0)(5|6|7)\d{8}$/.test(v);
+          return /^(\+213|0)(5|6|7)\d{8}$/.test(v); // Algerian phone number validation
         },
         message: (props) => `${props.value} is not a valid Algerian phone number!`,
       },
     },
     profilePicture: {
       type: String,
-      default: null,
+      default: null, // Optional, default to null if not provided
     },
   },
   { timestamps: true }

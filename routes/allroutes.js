@@ -7,11 +7,13 @@ const transactionRoute = require ('./transaction')
 const messageRoutes = require ('./message')
 const authRouter = require ('./auth')
 const authorizeRoutes = require ('./authorize')
+const { authenticate } = require("../middlewares/authmiddleware");
+
 
 
 
 //routes
-router.use("/users", userRoute);
+router.use("/users", authenticate ,userRoute);
 router.use("/favorites", favoriteRoutes);
 router.use('/propertie', propertieRoute)
 router.use("/transactions", transactionRoute);

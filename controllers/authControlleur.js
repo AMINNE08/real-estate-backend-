@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto')
 const  apiInstance = require ('../config/brevoConfig')
 
 
@@ -11,9 +10,9 @@ const  apiInstance = require ('../config/brevoConfig')
 
 // register user
 exports.registre = async (req, res) => {
-    const { userID, username, email, password, role} = req.body;
+    const { username, email, password, phone} = req.body;
     // validation :
-    if (!userID || !email || !password || !username || !role) {
+    if (!email || !password || !username || !phone ){
       return res.status(400).json({ message: "All fields are required" });
     }
     // checking if the user exsiste in the database :
@@ -28,11 +27,11 @@ exports.registre = async (req, res) => {
       // new user is a const that will be used to return the user created
       // User is the model
       const newuser = await User.create({
-        userID,
         username,
         email,
         password: hashedPassword,
-        role,
+        role: 'user',
+        phone
       });
       // returning the user and status code :
       res.status(201).json(newuser);
