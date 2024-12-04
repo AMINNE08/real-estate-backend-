@@ -47,39 +47,54 @@ exports.registre = async (req, res) => {
 
 
   
-// Login function
-exports.login = async (req, res) => {
+  exports.login = async (req, res) => {
     const { email, password } = req.body;
-    // checking if the user exsiste in the database :
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "User does not exist please register" });
-    }
   
-    // checking if the password is correct :
-    const correctPassword = await bcrypt.compare(password, user.password);
-    // we have a choice between ux and security depending on the project we are working on
-    if (!correctPassword) {
-      return res.status(400).json({ message: "Wrong password" });
-    }
     try {
-      // generate the token for the succefuly loged user and send it back with a status and the user
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: "User does not exist. Please register." });
+      }
+  
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (!isPasswordCorrect) {
+        return res.status(400).json({ message: "Incorrect password." });
+      }
+  
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d", 
       });
-      // dont send the user password back
-      res.status(200).json({ user: user.username, token: token });
+  
+      // Set the cookie
+      const cookieOptions = {
+        httpOnly: true, 
+        maxAge: 1000 * 60 * 60 * 24 * 7, 
+        secure: process.env.NODE_ENV === "production", 
+        sameSite: "strict",
+      };
+  
+      res
+        .cookie("token", token, cookieOptions)
+        .status(200)
+        .json({ message: "Login successful", user: user.username });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   };
+  
 
 
-
-
-
-
+  exports.logout = (req, res) => {
+    res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .status(200)
+      .json({ message: "Logout successful" });
+  };
+  
 
 
 
@@ -176,7 +191,6 @@ exports.resetPassword = async (req, res) => {
     user.resetPasswordExpires = undefined; // Clear the expiration
     await user.save();
 
-    console.log("Password updated successfully for user:", user.email);
     res.status(200).json({ message: "Password has been reset successfully" });
   } catch (error) {
     console.error("Error during password reset:", error);

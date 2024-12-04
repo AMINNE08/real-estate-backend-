@@ -7,6 +7,10 @@ const passport = require('passport');
 const session = require('express-session');
 const errorHandler = require('./middlewares/errorHandler');
 const routes= require ('./routes/allroutes.js')
+const cookieParser = require('cookie-parser');
+
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(cors({
   origin: ['http://localhost:5173', 'http://127.0.0.1:3000'],

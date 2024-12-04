@@ -1,28 +1,23 @@
-const User = require("../models/User");
-
 function authorizeRole(...allowedRoles) {
   return async (req, res, next) => {
     try {
-      const userId = req.user?.id; // User ID from the JWT payload
-
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized: User data is missing in request" });
       }
 
-      const user = await User.findById(userId);
-
+      const user = await User.findById(req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       if (!allowedRoles.includes(user.role)) {
-        return res.status(403).json({ message: "Forbidden: Insufficient role" });
+        return res.status(403).json({ message: `Forbidden: Requires one of the following roles: ${allowedRoles.join(", ")}` });
       }
 
-      next(); // User has sufficient role, proceed
+      next(); 
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: "Internal server error during role authorization" });
     }
   };
 }
