@@ -46,42 +46,61 @@ exports.registre = async (req, res) => {
 
 
 
-  
   exports.login = async (req, res) => {
     const { email, password } = req.body;
+    console.log("Received login request with:", req.body); // Log input
   
     try {
+      // Check if the user exists in the database
       const user = await User.findOne({ email });
+      console.log("User found:", user); // Log user from DB
+  
       if (!user) {
+        console.log("User not found.");
         return res.status(400).json({ message: "User does not exist. Please register." });
       }
   
+      // Compare the entered password with the stored password
       const isPasswordCorrect = await bcrypt.compare(password, user.password);
       if (!isPasswordCorrect) {
+        console.log("Incorrect password.");
         return res.status(400).json({ message: "Incorrect password." });
       }
   
+      // Create JWT token
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "7d", 
+        expiresIn: "7d", // token expiry
       });
   
-      // Set the cookie
+      console.log("Generated token:", token);
+  
+      // Remove the password field from the user object before sending it back to the client
+      const { password: userPassword, ...userInfo } = user.toObject();
+      console.log("User info sent to client:", userInfo); // Log user data sent
+  
+      // Set the cookie options
       const cookieOptions = {
         httpOnly: true, 
-        maxAge: 1000 * 60 * 60 * 24 * 7, 
-        secure: process.env.NODE_ENV === "production", 
-        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       };
   
+      // Send the token in the response as a cookie and user information in the body
       res
         .cookie("token", token, cookieOptions)
         .status(200)
-        .json({ message: "Login successful", user: user.username });
+        .json({
+          message: "Login successful",
+          user: userInfo, // Send user data without password
+          token: token, // Optionally, send the token in the response as well (client-side can use it)
+        });
+  
+      console.log("Cookie options:", cookieOptions);
+  
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.log("Error during login:", error);
+      res.status(500).json({ message: "Failed to login!" });
     }
   };
-  
 
 
   exports.logout = (req, res) => {
@@ -198,3 +217,28 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+exports.getMe = async (req, res) => {
+  const token = req.cookies.token || req.headers.authorization?.split(" ")[1]; // Check cookies or headers
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided, please login." });
+  }
+
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+    
+    // Fetch the user from the database
+    const user = await User.findById(userId).select('-password'); // Exclude password field
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to authenticate token." });
+  }
+};

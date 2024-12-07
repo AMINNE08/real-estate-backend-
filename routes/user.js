@@ -5,12 +5,16 @@ const {
     deleteUser,
     getUserById,
   } = require("../controllers/userControlleur");
-  
-
   const router = require("express").Router();
-router.get("/", getAllUsers);
-router.get("/:id", getUserById);
-router.post("/", createUser);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+  const { authenticate } = require('../middlewares/authmiddleware');
+
+
+
+  router.get("/", authenticate, getAllUsers);
+  router.get("/:id", authenticate, getUserById);
+  router.post("/", authenticate, createUser); 
+  router.put("/:id", authenticate, updateUser);
+  router.delete("/:id", authenticate, deleteUser);
+
 module.exports = router;
+
