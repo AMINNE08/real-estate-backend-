@@ -9,15 +9,12 @@ const errorHandler = require('./middlewares/errorHandler');
 const routes= require ('./routes/allroutes.js')
 const cookieParser = require('cookie-parser');
 
-
-app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:3000'],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: ['http://localhost:5174', 'http://127.0.0.1:3000' , 'http://localhost:5173'], 
+  credentials: true,                
 }));
-
 
 // Global error handler
 app.use(errorHandler);
@@ -43,17 +40,17 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Google Authentication Routes
-app.get('/auth/google', passport.authenticate('google', {
+app.get('/api/v1/auth/google', passport.authenticate('google', {
     scope: ['email', 'profile'],
 }));
 
-app.get('/auth/google/redirect', passport.authenticate('google', {
+app.get('/api/v1/auth/google/redirect', passport.authenticate('google', {
     failureRedirect: '/login',
 }), (req, res) => {
     res.redirect('/welcome_page');
 });
 
-// Your other routes
+// other routes
 app.get('/welcome_page', (req, res) => {
     if (req.isAuthenticated()) {
         res.send('Welcome to the welcome page!');

@@ -16,6 +16,8 @@ passport.use(new GoogleStrategy({
             username: profile.displayName,
             email: profile.emails[0].value,
             profilePic: profile.photos[0].value,
+            phone: "N/A", 
+            password: "google-oauth",
         });
         await newUser.save();
         return done(null, newUser);

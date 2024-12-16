@@ -4,9 +4,12 @@ const {
     updateUser,
     deleteUser,
     getUserById,
+    bookVisit,
+    allBookings,
+    cancelBookings,
   } = require("../controllers/userControlleur");
   const router = require("express").Router();
-  const { authenticate } = require('../middlewares/authmiddleware');
+  const {authenticate} = require('../middlewares/authmiddleware');
 
 
 
@@ -15,6 +18,9 @@ const {
   router.post("/", authenticate, createUser); 
   router.put("/:id", authenticate, updateUser);
   router.delete("/:id", authenticate, deleteUser);
+  router.post('/bookVisit/:id', bookVisit)
+  router.post("/allBookings", allBookings)
+  router.post("/removeBooking/:id", cancelBookings)
 
 module.exports = router;
 
