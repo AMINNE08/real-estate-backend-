@@ -5,7 +5,7 @@ const  apiInstance = require ('../config/brevoConfig')
 
 
 exports.registre = async (req, res) => {
-    const { username, email, password, phone} = req.body;
+    const { username, email, password, phone, role} = req.body;
     if (!email || !password || !username || !phone ){
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -19,7 +19,7 @@ exports.registre = async (req, res) => {
         username,
         email,
         password: hashedPassword,
-        role: 'user',
+        role: role || 'user', 
         phone
       });
       res.status(201).json(newuser);

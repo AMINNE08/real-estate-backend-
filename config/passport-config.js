@@ -7,6 +7,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL ,
 }, async (token, tokenSecret, profile, done) => {
+    console.log("Google Profile:", profile);
     // Check if user exists, if not create a new user
     const user = await User.findOne({ email: profile.emails[0].value });
     if (user) {

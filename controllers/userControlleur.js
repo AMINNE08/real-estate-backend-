@@ -7,9 +7,9 @@ const asyncHandler = require("express-async-handler");
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.json(users);
+    res.status(200).json(users);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Error fetching users', error });
   }
 };
 

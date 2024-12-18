@@ -12,8 +12,8 @@ const cookieParser = require('cookie-parser');
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:5174', 'http://127.0.0.1:3000' , 'http://localhost:5173'], 
-  credentials: true,                
+  origin: ['http://localhost:5173', 'http://127.0.0.1:3000'], 
+  credentials: true,
 }));
 
 // Global error handler
@@ -40,24 +40,24 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Google Authentication Routes
-app.get('/api/v1/auth/google', passport.authenticate('google', {
-    scope: ['email', 'profile'],
+app.get('/api/v1/auth/google', (req, res, next) => {
+  console.log("Redirecting to Google OAuth...");
+  next();
+}, passport.authenticate('google', {
+  scope: ['email', 'profile'],
 }));
 
 app.get('/api/v1/auth/google/redirect', passport.authenticate('google', {
-    failureRedirect: '/login',
+  failureRedirect: '/login',
 }), (req, res) => {
-    res.redirect('/welcome_page');
+  // Redirect the user to the frontend with some user info as a query parameter or a token
+  const user = req.user; // Assuming `req.user` holds the authenticated user data
+
+  // Redirect to frontend with the user data or token (you can use JWT here for security)
+  res.redirect(`http://localhost:5173?username=${user.username}&email=${user.email}`);
 });
 
-// other routes
-app.get('/welcome_page', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.send('Welcome to the welcome page!');
-    } else {
-        res.redirect('/login');
-    }
-});
+
 
 app.use("/api/v1", routes);
 

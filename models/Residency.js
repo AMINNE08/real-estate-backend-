@@ -39,6 +39,16 @@ const ResidencySchema = new mongoose.Schema(
       required: true,
       ref: "User", // Reference to the User model
     },
+    propertyType: {
+      type: String,
+      enum: ["Rent", "Buy"], // Restrict values to "Rent" or "Buy"
+      required: true,        // Make it mandatory to specify property type
+    },
+    status: {
+      type: String,
+      enum: ["available", "sold"],
+      default: "available",
+    },
     createAt: {
       type: Date,
       default: Date.now,

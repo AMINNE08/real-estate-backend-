@@ -13,7 +13,7 @@ const {
 
 
 
-  router.get("/", authenticate, getAllUsers);
+  router.get("/", getAllUsers);
   router.get("/:id", authenticate, getUserById);
   router.post("/", authenticate, createUser); 
   router.put("/:id", authenticate, updateUser);
