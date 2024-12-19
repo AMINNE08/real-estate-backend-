@@ -70,6 +70,7 @@ exports.registre = async (req, res) => {
             email: user.email,
             avatar: user.avatar, 
             phone: user.phone,
+            role: user.role,
           },
           token,
          });
